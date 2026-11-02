@@ -1,5 +1,5 @@
 # 1. 強制安裝網頁伺服器必要套件
-!pip install streamlit --quiet
+# !pip install streamlit --quiet
 
 # 2. 【核心復活】改用絕不重複的全新獨立檔名，徹底擊碎 Colab 背景的檔案卡死魔咒
 code_mac_lock = """

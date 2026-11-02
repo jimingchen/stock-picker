@@ -59,7 +59,7 @@ with open("app_perfect_reborn_2026.py", "w", encoding="utf-8") as f:
     f.write(code_mac_lock.strip())
 
 # 3. 徹底清理後台所有可能卡住的舊埠號
-!fuser -k 8501/tcp 8502/tcp 8503/tcp 8504/tcp 8519/tcp > /dev/null 2>&1
+# !fuser -k 8501/tcp 8502/tcp 8503/tcp 8504/tcp 8519/tcp > /dev/null 2>&1
 
 # 4. 【核心復活】改用全新未開發的 8519 通道啟動，強迫 Colab 動態重組全新路由網址
 import subprocess

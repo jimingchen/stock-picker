@@ -80,7 +80,7 @@ st.markdown("""
 # 這樣做可以完美避開所有新舊版本的參數命名衝突
 pdf_viewer(
     pdf_bytes,
-    width=800
+    width=800,
+    height=800
 )
-
 st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")

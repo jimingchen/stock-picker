@@ -77,7 +77,7 @@ print("正在以全新潔淨通道（Port 8519）啟動原始成功版伺服器.
 time.sleep(10)
 
 # 5. 生成您分享給他人、全新專屬的 .colab.dev 連結
-from google.colab import output
+# from google.colab import output
 proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")
 
 print("\n" + "="*60)

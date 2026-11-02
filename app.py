@@ -2,9 +2,9 @@ import streamlit as st
 import uuid
 import hashlib
 import os
-import base64
+from streamlit_pdf_viewer import pdf_viewer
 
-# 1. 設定網頁標題與寬螢幕版面（讓 PDF 完美呈現）
+# 1. 設定網頁標題與寬螢幕版面
 st.set_page_config(page_title="系統安全設備", layout="wide")
 st.title("🔒 系統安全設備認證")
 
@@ -24,7 +24,7 @@ st.info(f"ℹ️ 目前系統偵測設備 MAC: {current_mac} | 認證密碼: {co
 # 2. 密碼輸入框
 user_input = st.text_input("請輸入 5 位數認證密碼：", type="password")
 
-# 驗證阻斷機制（扁平化結構，保證不報語法錯誤）
+# 驗證阻斷機制
 if not user_input:
     st.stop()
 
@@ -58,23 +58,48 @@ if not os.path.exists(local_pdf_path):
     st.error(f"⚠️ 系統錯誤：找不到專案內的實體檔案 【{local_pdf_path}】，請確認檔案是否已上傳至 GitHub 倉庫。")
     st.stop()
 
-# 讀取專案內的實體 PDF 檔案資料流
+# 讀取專案內的實體 PDF 檔案
 with open(local_pdf_path, "rb") as f:
     pdf_bytes = f.read()
 
-# 將 PDF 資料進行標準 Base64 編碼（清除所有可能導致斷行的換行符號）
-pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8').replace('\n', '').replace('\r', '')
+# 禁止右鍵與防複製的 CSS 注入防護
+st.markdown("""
+    <style>
+    canvas, iframe, div {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+    </style>
+    <script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+""", unsafe_allow_html=True)
 
-# 【核心防護關鍵修正】：不使用易出錯的第三方套件，改用標準 iframe 直接加載原生二進位資料流
-# 1. 網頁末端加上 #toolbar=0&navpanes=0&scrollbar=1，這會強制叫 Chrome 與所有瀏覽器把最上面的「下載箭頭、三個點、列印機」工具列整條完全隱藏拔除。
-# 2. 加上 oncontextmenu="return false;"，鎖死滑鼠右鍵選單。
-# 3. 由於採用了標準瀏覽器原生渲染，PDF 內部的所有藍色超連結、點擊跳轉功能，都會 100% 恢復靈敏觸發！
-pdf_display = f'''
-<body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0; background-color:#fafafa;">
-    <iframe src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0&scrollbar=1" width="100%" height="900px" style="border:none;"></iframe>
-</body>
-'''
+# ----------------- 🛠️ 核心超連結解決方案 -----------------
+# 既然內嵌 PDF 點不到，我們就直接把文件裡面的連結做成美美的網頁快捷按鈕！
+st.markdown("### 🔗 本文件專屬快捷超連結（點擊即可直接跳轉）：")
 
-# 將乾淨、絕對不卡死、相容性最高的組件輸出至 Streamlit 網頁中
-st.components.v1.html(pdf_display, height=920, scrolling=False)
-st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")
+if selected_file == "A玩股網設定":
+    col1, col2 = st.columns(2)
+    with col1:
+        st.link_button("🌐 前往 GOOGLE 詢問 (x.gd/JwRVe)", "https://x.gd", use_container_width=True, type="primary")
+    with col2:
+        st.link_button("🌐 前往 玩股網全球股市指數", "https://wantgoo.com", use_container_width=True, type="primary")
+
+elif selected_file == "B玩股網設定":
+    col1, col2 = st.columns(2)
+    with col1:
+        st.link_button("🌐 前往 GOOGLE 詢問數據 (x.gd/UtujV)", "https://x.gd", use_container_width=True, type="primary")
+    with col2:
+        st.link_button("🌐 前往 GOOGLE 詢問 (x.gd/JwRVe)", "https://x.gd", use_container_width=True, type="primary")
+
+st.markdown("---")
+
+# ----------------- 📄 核心防下載文件渲染 -----------------
+# 使用之前最成功、最流暢、絕對不當機的官方元件渲染。因為超連結已經做在上面了，這裡就專注完美防下載！
+pdf_viewer(
+    pdf_bytes,
+    width=800
+)
+
+st.info("💡 提示：本網頁已啟用最高安全防護。工具列與下載功能已被屏蔽，但工具列下載已被屏蔽。")

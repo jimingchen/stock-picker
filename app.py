@@ -2,7 +2,7 @@
 # !pip install streamlit --quiet
 
 # 2. 【核心復活】改用絕不重複的全新獨立檔名，徹底擊碎 Colab 背景的檔案卡死魔咒
-code_mac_lock = """
+# code_mac_lock = """  
 import streamlit as st
 import uuid
 import hashlib
@@ -52,7 +52,7 @@ if user_input:
             st.error("❌ 認證失敗：此設備認證碼錯誤，拒絕存取雲端硬碟。")
     except ValueError:
         st.warning("⚠️ 請輸入正確的 5 位數純數字。")
-"""
+#  """
 
 # 寫入全新檔案中，徹底與過去所有舊快取告別
 with open("app_perfect_reborn_2026.py", "w", encoding="utf-8") as f:

@@ -51,9 +51,11 @@ if user_input:
             
             # 檢查檔案是否真的存在於 GitHub 目錄
             if os.path.exists(local_pdf_path):
-                # 將本機 PDF 檔案讀取並轉化為 base64 編碼，完全不受外網 CORS 限制
+                # 將本機 PDF 檔案讀取並轉化為 base64 編碼
                 with open(local_pdf_path, "rb") as f:
-                    base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+                    # 【核心修正】：務必使用 .replace('\n', '') 和 .replace('\r', '') 徹底清空所有換行符號
+                    # 確保整串 Base64 是完美的一長條單行字串，JS 才不會語法崩潰
+                    base64_pdf = base64.b64encode(f.read()).decode('utf-8').replace('\n', '').replace('\r', '')
                 
                 # 終極防護網頁 Canvas 程式碼
                 html_code = f"""

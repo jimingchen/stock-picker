@@ -1,9 +1,4 @@
-# 1. 強制安裝網頁伺服器必要套件
-# !pip install streamlit --quiet
-
-# 2. 【核心復活】改用絕不重複的全新獨立檔名，徹底擊碎 Colab 背景的檔案卡死魔咒
-# code_mac_lock = """  
-import streamlit as st
+import streamlit as st  
 import uuid
 import hashlib
 
@@ -52,14 +47,14 @@ if user_input:
             st.error("❌ 認證失敗：此設備認證碼錯誤，拒絕存取雲端硬碟。")
     except ValueError:
         st.warning("⚠️ 請輸入正確的 5 位數純數字。")
-#  """
+"""
 
 # 寫入全新檔案中，徹底與過去所有舊快取告別
 with open("app_perfect_reborn_2026.py", "w", encoding="utf-8") as f:
     f.write(code_mac_lock.strip())
 
 # 3. 徹底清理後台所有可能卡住的舊埠號
-# !fuser -k 8501/tcp 8502/tcp 8503/tcp 8504/tcp 8519/tcp > /dev/null 2>&1
+!fuser -k 8501/tcp 8502/tcp 8503/tcp 8504/tcp 8519/tcp > /dev/null 2>&1
 
 # 4. 【核心復活】改用全新未開發的 8519 通道啟動，強迫 Colab 動態重組全新路由網址
 import subprocess
@@ -77,11 +72,5 @@ print("正在以全新潔淨通道（Port 8519）啟動原始成功版伺服器.
 time.sleep(10)
 
 # 5. 生成您分享給他人、全新專屬的 .colab.dev 連結
-# from google.colab import output
-# proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")
-
-#print("\n" + "="*60)
-#print("🎉 昨天成功的「按鈕直達版」網頁已完美重新啟動！")
-#print("🔗 請點擊下方全新藍色連結進入驗證畫面（可直接轉傳交給他人）：")
-# print(f"\n{proxy_url}")
-#print("="*60 + "\n")
+from google.colab import output
+proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")

@@ -76,11 +76,11 @@ st.markdown("""
     </script>
 """, unsafe_allow_html=True)
 
-# 【核心終極防護】：利用官方專業元件進行後端解析渲染
+# 【核心終極防護修正】：將 input=pdf_bytes 修正為官方新版標準的 data=pdf_bytes
 # rendering="canvas" 代表只輸出網頁畫布圖塊，完全不產生 PDF 實體檔案下載按鈕
 # width=800 設定完美的閱讀寬度
 pdf_viewer(
-    input=pdf_bytes,
+    data=pdf_bytes,
     width=800,
     rendering="canvas",
     annotations=True # 保留 PDF 內的所有點擊跳轉超連結功能

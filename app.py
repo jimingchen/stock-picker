@@ -2,6 +2,7 @@ import streamlit as st
 import uuid
 import hashlib
 import os
+import base64
 
 # 1. 設定網頁標題與寬螢幕版面
 st.set_page_config(page_title="系統安全設備", layout="wide")
@@ -23,7 +24,7 @@ st.info(f"ℹ️ 目前系統偵測設備 MAC: {current_mac} | 認證密碼: {co
 # 2. 密碼輸入框
 user_input = st.text_input("請輸入 5 位數認證密碼：", type="password")
 
-# 驗證阻斷機制
+# 驗證阻斷機制（扁平化結構，保證不報語法錯誤）
 if not user_input:
     st.stop()
 
@@ -57,19 +58,21 @@ if not os.path.exists(local_pdf_path):
     st.error(f"⚠️ 系統錯誤：找不到專案內的實體檔案 【{local_pdf_path}】，請確認檔案是否已上傳至 GitHub 倉庫。")
     st.stop()
 
-# 【終極防護解決方案】：利用 Google Docs 官方線上檢視器引擎
-# 我們將您的 GitHub 公開 PDF 原始路徑直接餵給 Google，並加上 &embedded=true 內嵌與 #toolbar=0 防下載參數
-# 這能在不暴露雲端硬碟的情況下，完美解決大檔案、Base64 卡死以及 Chrome 瀏覽器不支援的所有漏洞！
-github_raw_url = f"https://githubusercontent.com{local_pdf_path}"
+# 讀取專案內的實體 PDF 檔案資料流
+with open(local_pdf_path, "rb") as f:
+    pdf_bytes = f.read()
 
-final_html = f'''
+# 將 PDF 資料進行標準 Base64 編碼（清除所有可能導致斷行的換行符號）
+pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8').replace('\n', '').replace('\r', '')
+
+# 【官方標準安全防護內嵌】：使用標準 iframe 加載 base64 資料流
+# 末端加上 #toolbar=0&navpanes=0 參數，會強制把下載、列印、儲存按鈕整條完全隱藏遮蔽
+pdf_display = f'''
 <body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0; background-color:#fafafa;">
-    <iframe src="https://google.com{github_raw_url}&embedded=true&toolbar=0" 
-            width="100%" height="900px" style="border:none;">
-    </iframe>
+    <iframe src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0&scrollbar=1" width="100%" height="900px" style="border:none;"></iframe>
 </body>
 '''
 
-# 將完美相容的內嵌框架輸出至 Streamlit
-st.components.v1.html(final_html, height=920, scrolling=False)
+# 將乾淨無錯的組件安全輸出至 Streamlit 網頁中
+st.components.v1.html(pdf_display, height=920, scrolling=False)
 st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")

@@ -2,9 +2,9 @@ import streamlit as st
 import uuid
 import hashlib
 import os
-import base64
+from streamlit_pdf_viewer import pdf_viewer
 
-# 1. 設定網頁標題與寬螢幕版面
+# 1. 設定網頁標題與寬螢幕版面（讓 PDF 完美呈現）
 st.set_page_config(page_title="系統安全設備", layout="wide")
 st.title("🔒 系統安全設備認證")
 
@@ -42,13 +42,13 @@ if user_key != correct_key:
 st.success("🔓 認證成功！設備硬體比對完全相符。")
 st.markdown("---")
 
-# 設定您的 GitHub 內建 PDF 檔案清單（直接抓同目錄下的實體檔案）
+# 設定您的 GitHub 內建 PDF 檔案清單
 pdf_files = {
     "A玩股網設定": "A玩股網設定.pdf",
     "B玩股網設定": "B玩股網設定.pdf"
 }
 
-# 下拉選單：這就等同於您的「雲端資料夾」，讓使用者可以直接在這裡切換多個檔案
+# 下拉選單：讓使用者自由切換檔案
 selected_file = st.selectbox("📁 請選擇欲檢視的設定檔（已嚴格限制 3 頁內）：", list(pdf_files.keys()))
 local_pdf_path = pdf_files[selected_file]
 
@@ -62,22 +62,28 @@ if not os.path.exists(local_pdf_path):
 with open(local_pdf_path, "rb") as f:
     pdf_bytes = f.read()
 
-# 將 PDF 轉成標準 Base64 數據
-pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+# 禁止右鍵與防複製的 CSS 注入防護
+st.markdown("""
+    <style>
+    /* 全局鎖定選取、禁止反白、禁止右鍵行為 */
+    canvas, .stVideo, iframe, div {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+    </style>
+    <script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+""", unsafe_allow_html=True)
 
-# 【終極輕量防崩潰架構】：
-# 以前使用大字串會讓 Chrome 的 iframe 崩潰。這次我們改用標準的嵌入語法，
-# 並且不加入多餘的樣式運算。#toolbar=0 會通知 Chrome 拔除下載、列印按鈕，
-# 同時利用 JavaScript 來保證右鍵被封鎖。
-html_display = f'''
-<!DOCTYPE html>
-<html>
-<body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0;">
-    <embed src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0&scrollbar=1" type="application/pdf" width="100%" height="900px" />
-</body>
-</html>
-'''
+# 【核心終極防護】：利用官方專業元件進行後端解析渲染
+# rendering="canvas" 代表只輸出網頁畫布圖塊，完全不產生 PDF 實體檔案下載按鈕
+# width=800 設定完美的閱讀寬度
+pdf_viewer(
+    input=pdf_bytes,
+    width=800,
+    rendering="canvas",
+    annotations=True # 保留 PDF 內的所有點擊跳轉超連結功能
+)
 
-# 在 Streamlit 中安全輸出（使用寬度 100% 彈性自我調整，不會讓瀏覽器過載）
-st.components.v1.html(html_display, height=920, scrolling=False)
 st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")

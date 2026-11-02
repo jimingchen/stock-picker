@@ -29,7 +29,7 @@ st.info(f"ℹ️ 目前系統偵測設備 MAC: {current_mac} | 認證密碼: {co
 user_input = st.text_input("請輸入 5 位數認證密碼：", type="password")
 
 # 玩股網雲端硬碟的實際超連結（您可以之後再換成您自己實際的 Google Drive 網址）
-TARGET_URL = "https://google.com"
+TARGET_URL = "https://drive.google.com/drive/folders/1feGDILvAOfFtxiiExtYSqSSOZNkg-Uvq?usp=drive_link"
 
 if user_input:
     try:

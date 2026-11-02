@@ -42,13 +42,13 @@ if user_key != correct_key:
 st.success("🔓 認證成功！設備硬體比對完全相符。")
 st.markdown("---")
 
-# 設定您的 GitHub 內建 PDF 檔案清單
+# 設定您的 GitHub 內建 PDF 檔案清單（直接抓同目錄下的實體檔案）
 pdf_files = {
     "A玩股網設定": "A玩股網設定.pdf",
     "B玩股網設定": "B玩股網設定.pdf"
 }
 
-# 下拉選單切換檔案
+# 下拉選單：這就等同於您的「雲端資料夾」，讓使用者可以直接在這裡切換多個檔案
 selected_file = st.selectbox("📁 請選擇欲檢視的設定檔（已嚴格限制 3 頁內）：", list(pdf_files.keys()))
 local_pdf_path = pdf_files[selected_file]
 
@@ -58,21 +58,26 @@ if not os.path.exists(local_pdf_path):
     st.error(f"⚠️ 系統錯誤：找不到專案內的實體檔案 【{local_pdf_path}】，請確認檔案是否已上傳至 GitHub 倉庫。")
     st.stop()
 
-# 讀取專案內的實體 PDF 檔案資料流
+# 讀取專案內的實體 PDF 檔案
 with open(local_pdf_path, "rb") as f:
     pdf_bytes = f.read()
 
-# 將 PDF 資料進行標準 Base64 編碼（清除所有可能導致斷行的換行符號）
-pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8').replace('\n', '').replace('\r', '')
+# 將 PDF 轉成標準 Base64 數據
+pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
-# 【官方標準安全防護內嵌】：使用標準 iframe 加載 base64 資料流
-# 末端加上 #toolbar=0&navpanes=0 參數，會強制把下載、列印、儲存按鈕整條完全隱藏遮蔽
-pdf_display = f'''
-<body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0; background-color:#fafafa;">
-    <iframe src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0&scrollbar=1" width="100%" height="900px" style="border:none;"></iframe>
+# 【終極輕量防崩潰架構】：
+# 以前使用大字串會讓 Chrome 的 iframe 崩潰。這次我們改用標準的嵌入語法，
+# 並且不加入多餘的樣式運算。#toolbar=0 會通知 Chrome 拔除下載、列印按鈕，
+# 同時利用 JavaScript 來保證右鍵被封鎖。
+html_display = f'''
+<!DOCTYPE html>
+<html>
+<body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0;">
+    <embed src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0&scrollbar=1" type="application/pdf" width="100%" height="900px" />
 </body>
+</html>
 '''
 
-# 將乾淨無錯的組件安全輸出至 Streamlit 網頁中
-st.components.v1.html(pdf_display, height=920, scrolling=False)
+# 在 Streamlit 中安全輸出（使用寬度 100% 彈性自我調整，不會讓瀏覽器過載）
+st.components.v1.html(html_display, height=920, scrolling=False)
 st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")

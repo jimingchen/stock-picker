@@ -78,7 +78,7 @@ time.sleep(10)
 
 # 5. 生成您分享給他人、全新專屬的 .colab.dev 連結
 # from google.colab import output
-proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")
+# proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")
 
 print("\n" + "="*60)
 print("🎉 昨天成功的「按鈕直達版」網頁已完美重新啟動！")

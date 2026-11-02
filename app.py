@@ -76,15 +76,25 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ----------------- 🛠️ 核心超連結解決方案 -----------------
-# 既然內嵌 PDF 點不到，我們就直接把文件裡面的連結做成美美的網頁快捷按鈕！
+# 既然內嵌 PDF 畫面內部的網址點不到，我們就把文件裡出現的所有藍色網址，通通做成上方的紅色大按鈕！
 st.markdown("### 🔗 本文件專屬快捷超連結（點擊即可直接跳轉）：")
 
 if selected_file == "A玩股網設定":
-    col1, col2 = st.columns(2)
+    # 使用 3 欄式佈局，把 A 檔案裡出現的所有連結排成一列
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.link_button("🌐 前往 GOOGLE 詢問 (x.gd/JwRVe)", "https://x.gd", use_container_width=True, type="primary")
     with col2:
         st.link_button("🌐 前往 玩股網全球股市指數", "https://wantgoo.com", use_container_width=True, type="primary")
+    with col3:
+        st.link_button("🌐 查詢：上市外資買賣超 (Goodinfo)", "https://goodinfo.tw", use_container_width=True, type="primary")
+        
+    # 下方如果有更多 A 檔案的藍色超連結，可以另外再開一列按鈕
+    col4, col5 = st.columns(2)
+    with col4:
+        st.link_button("🌐 查詢：上市融資融券 (Goodinfo)", "https://goodinfo.tw", use_container_width=True, type="primary")
+    with col5:
+        st.link_button("🌐 前往 GOOGLE 詢問 (x.gd/NsDXi)", "https://x.gd", use_container_width=True, type="primary")
 
 elif selected_file == "B玩股網設定":
     col1, col2 = st.columns(2)

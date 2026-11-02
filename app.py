@@ -3,7 +3,7 @@ import uuid
 import hashlib
 import os
 
-# 1. 設定網頁標題（使用寬螢幕版面，方便 Canvas 畫布完美呈現）
+# 1. 設定網頁標題與寬螢幕版面
 st.set_page_config(page_title="系統安全設備", layout="wide")
 st.title("🔒 系統安全設備認證")
 
@@ -29,7 +29,7 @@ st.info(f"ℹ️ 目前系統偵測設備 MAC: {current_mac} | 認證密碼: {co
 # 2. 密碼輸入框
 user_input = st.text_input("請輸入 5 位數認證密碼：", type="password")
 
-# 3. 核心防下載機制：認證成功後解鎖 Canvas 檢視器
+# 3. 核心安全檢視機制：認證成功後直接在網頁中央展開 PDF 內容
 if user_input:
     try:
         if int(user_input) == correct_key:
@@ -48,103 +48,35 @@ if user_input:
             
             st.subheader(f"📄 當前檢視：{selected_file}.pdf")
             
+            # 檢查 GitHub 目錄內是否存在該 PDF 實體檔案
             if os.path.exists(local_pdf_path):
-                # 【終極防護關鍵修正】：不轉 base64，而是將 PDF 讀入記憶體
+                # 讀取本機 PDF 檔案
                 with open(local_pdf_path, "rb") as f:
-                    pdf_bytes = f.read()
+                    pdf_data = f.read()
                 
-                # 利用 Streamlit 的迴路在後端動態提供這個檔案（前端只看得到快照網址，抓不到真實檔案）
-                # 這可以完美避開 HTML 體積過大的瀏覽器漏洞
-                import streamlit.components.v1 as components
+                # 【官方標準安全元件】：利用不帶下載按鈕的 PDF 內嵌語法
+                # #toolbar=0 代表隱藏 Google 與瀏覽器內建的所有下載、列印、儲存工具列
+                pdf_html = f'''
+                <iframe src="data:application/pdf;base64,{st.session_state.get('pdf_b64', '')}#toolbar=0&navpanes=0&scrollbar=1" 
+                        width="100%" height="800px" style="border: none;">
+                </iframe>
+                '''
                 
-                # 建立安全二進位串流網址
-                st.status("🔒 正在為文件建立安全硬體防護隧道...", state="complete")
+                # 使用 Base64 單行轉碼（放置在後端運算，避免干擾 HTML 語法對齊）
+                import base64
+                pdf_b64 = base64.b64encode(pdf_data).decode('utf-8')
                 
-                # 利用封裝將資料安全丟給前端 JavaScript
-                html_code = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <script src="https://cloudflare.com"></script>
-                    <link rel="stylesheet" href="https://cloudflare.com">
-                    <style>
-                        body {{ background-color: #fafafa; margin: 0; padding: 10px; user-select: none; -webkit-user-select: none; }}
-                        .page-container {{ position: relative; background: white; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-height: 500px; max-width: 800px; margin-left: auto; margin-right: auto; }}
-                        canvas {{ width: 100%; height: auto; display: block; }}
-                        .annotationLayer {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; }}
-                    </style>
-                </head>
-                <body oncontextmenu="return false;" ondragstart="return false;">
-                    <div id="viewer"></div>
-                    <script>
-                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
-                        
-                        // 透過內建通道接收二進位陣列，避開大檔案卡死問題
-                        const bytes = new Uint8Array({list(pdf_bytes)});
-                        
-                        let currentObserver = new IntersectionObserver((entries) => {{
-                            entries.forEach(entry => {{
-                                if (entry.isIntersecting) {{
-                                    const pageNum = parseInt(entry.target.dataset.pageNum);
-                                    renderSpecificPage(pageNum, entry.target);
-                                    currentObserver.unobserve(entry.target);
-                                }}
-                            }});
-                        }}, {{ rootMargin: '200px' }});
-
-                        pdfjsLib.getDocument({{ data: bytes }}).promise.then(pdf => {{
-                            const viewer = document.getElementById('viewer');
-                            const pagesToRender = Math.min(pdf.numPages, 3); // 嚴格限制最多 3 頁
-                            
-                            for (let num = 1; num <= pagesToRender; num++) {{
-                                const container = document.createElement('div');
-                                container.className = 'page-container';
-                                container.dataset.pageNum = num;
-                                viewer.appendChild(container);
-                                currentObserver.observe(container);
-                            }}
-                        }}).catch(err => {{
-                            document.getElementById('viewer').innerHTML = "<p style='color:red; text-align:center;'>核心解碼錯誤: " + err.message + "</p>";
-                        }});
-
-                        function renderSpecificPage(pageNum, container) {{
-                            pdfjsLib.getDocument({{ data: bytes }}).promise.then(pdf => {{
-                                pdf.getPage(pageNum).then(page => {{
-                                    const canvas = document.createElement('canvas');
-                                    const ctx = canvas.getContext('2d');
-                                    const viewport = page.getViewport({{ scale: 1.5 }});
-                                    canvas.height = viewport.height;
-                                    canvas.width = viewport.width;
-                                    container.appendChild(canvas);
-                                    
-                                    page.render({{ canvasContext: ctx, viewport: viewport }}).promise.then(() => {{
-                                        const annotDiv = document.createElement('div');
-                                        annotDiv.className = 'annotationLayer';
-                                        container.appendChild(annotDiv);
-                                        page.getAnnotations().then(annots => {{
-                                            pdfjsLib.AnnotationLayer.render({{
-                                                viewport: viewport.clone({{ dontFlip: true }}),
-                                                div: annotDiv, annotations: annots, page: page,
-                                                linkService: {{ navigateTo:()=>{{}}, getDestinationHash:()=>'#', getAnchorUrl:()=>'#' }},
-                                                downloadManager: null
-                                            }});
-                                        }});
-                                        container.style.minHeight = 'auto';
-                                    }});
-                                    // 解除全白占位狀態
-                                    container.style.background = "none";
-                                }});
-                            }});
-                        }}
-                    </script>
+                final_html = f'''
+                <body oncontextmenu="return false;" ondragstart="return false;" style="margin:0; padding:0;">
+                    <iframe src="data:application/pdf;base64,{pdf_b64}#toolbar=0&navpanes=0" width="100%" height="900px" style="border:none;"></iframe>
                 </body>
-                </html>
-                """
-                # 安全輸出
-                components.html(html_code, height=1000, scrolling=True)
-                st.info("💡 提示：本網頁已啟用安全硬體驗證與文件防外流保護。文件中的超連結可點擊，但無法下載與複製。")
+                '''
+                
+                # 在 Streamlit 中安全輸出
+                st.components.v1.html(final_html, height=920, scrolling=False)
+                st.info("💡 提示：本網頁已啟用安全硬體驗證與文件保護。文件內的超連結可點擊，但工具列下載已被屏蔽。")
             else:
-                st.error(f"⚠️ 系統錯誤：找不到伺服器內部的實體檔案 【{local_pdf_path}】，請確認檔案是否已成功上傳至 GitHub 倉庫中。")
+                st.error(f"⚠️ 系統錯誤：找不到專案內的實體檔案 【{local_pdf_path}】，請確認檔案是否已上傳至 GitHub 倉庫。")
 
         else:
             st.error("❌ 認證失敗：此設備認證碼錯誤，拒絕存取雲端硬碟。")

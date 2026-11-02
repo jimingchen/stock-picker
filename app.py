@@ -80,8 +80,8 @@ time.sleep(10)
 # from google.colab import output
 # proxy_url = output.eval_js("google.colab.kernel.proxyPort(8519)")
 
-print("\n" + "="*60)
-print("🎉 昨天成功的「按鈕直達版」網頁已完美重新啟動！")
-print("🔗 請點擊下方全新藍色連結進入驗證畫面（可直接轉傳交給他人）：")
+#print("\n" + "="*60)
+#print("🎉 昨天成功的「按鈕直達版」網頁已完美重新啟動！")
+#print("🔗 請點擊下方全新藍色連結進入驗證畫面（可直接轉傳交給他人）：")
 # print(f"\n{proxy_url}")
-print("="*60 + "\n")
+#print("="*60 + "\n")
